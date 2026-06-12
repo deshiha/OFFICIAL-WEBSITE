@@ -1,0 +1,1173 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>VERSWARRIOR — Don't Be a Worrier, Be a Warrior</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+<script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+<script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+<script src="https://unpkg.com/framer-motion@10.16.4/dist/framer-motion.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700;900&family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --navy:#070B17;
+    --navy-2:#0E1830;
+    --blue:#2E6BFF;
+    --blue-light:#6FA8FF;
+    --ice:#9ED8F0;
+    --silver:#C7CDD9;
+    --gray:#F4F6FA;
+    --orange:#FF6B1A;
+    --orange-light:#FF9F5A;
+    --amber:#FFAB40;
+  }
+  *{box-sizing:border-box; scroll-behavior:smooth;}
+  html,body{margin:0; padding:0; background:var(--navy); font-family:'Inter',sans-serif; color:var(--gray); overflow-x:hidden;}
+  .font-display{font-family:'Cinzel',serif;}
+  .font-mono{font-family:'JetBrains Mono',monospace;}
+
+  ::-webkit-scrollbar{width:6px;}
+  ::-webkit-scrollbar-track{background:var(--navy);}
+  ::-webkit-scrollbar-thumb{background:linear-gradient(var(--blue),var(--silver)); border-radius:4px;}
+
+  .glass{
+    background:rgba(255,255,255,0.035);
+    border:1px solid rgba(255,255,255,0.08);
+    backdrop-filter:blur(18px);
+  }
+  .glow-text{
+    text-shadow:0 0 18px rgba(46,107,255,0.55), 0 0 40px rgba(110,168,255,0.3);
+  }
+  .grad-blue-silver{
+    background:linear-gradient(90deg, var(--blue), var(--silver));
+  }
+  .text-grad{
+    background:linear-gradient(90deg, var(--blue-light), var(--ice), var(--silver));
+    -webkit-background-clip:text;
+    background-clip:text;
+    color:transparent;
+  }
+  .text-grad-orange{
+    background:linear-gradient(90deg, var(--orange), var(--orange-light), var(--amber));
+    -webkit-background-clip:text;
+    background-clip:text;
+    color:transparent;
+  }
+  .card-glow:hover{
+    box-shadow:0 0 0 1px rgba(46,107,255,0.45), 0 20px 60px -20px rgba(46,107,255,0.4);
+  }
+  .noise{
+    background-image:radial-gradient(circle at 1px 1px, rgba(255,255,255,0.03) 1px, transparent 0);
+    background-size:24px 24px;
+  }
+  .blade-divider{
+    height:2px;
+    background:linear-gradient(90deg, transparent, var(--blue) 15%, #fff 50%, var(--silver) 85%, transparent);
+    position:relative;
+  }
+  .blade-divider::after{
+    content:'';
+    position:absolute; right:-6px; top:-5px;
+    width:12px; height:12px; border-radius:50%;
+    background:var(--blue-light);
+    box-shadow:0 0 12px var(--blue-light);
+  }
+  .section-eyebrow{
+    font-family:'JetBrains Mono',monospace;
+    letter-spacing:0.25em;
+    font-size:0.7rem;
+    color:var(--blue-light);
+    text-transform:uppercase;
+  }
+
+  /* ====================== INTRO CANVAS ====================== */
+  #intro-canvas {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+  }
+
+  /* ====================== MOLECULAR BG ====================== */
+  #mol-canvas {
+    position:absolute;
+    inset:0;
+    pointer-events:none;
+    opacity:0.07;
+  }
+
+  @media (prefers-reduced-motion: reduce){
+    *{ animation-duration:0.01ms !important; transition-duration:0.01ms !important; }
+  }
+
+  /* ── WARRIORS 2×2 GRID — responsive ────────────────────────
+     2 columns on tablet+, 1 column on mobile (<560px).
+  ────────────────────────────────────────────────────────────── */
+  @media (max-width: 559px) {
+    .warriors-grid {
+      grid-template-columns: 1fr !important;
+    }
+  }
+
+  /* ── LOGO WRAP PREVENTION — absolute guarantee ─────────────
+     These rules ensure VersWARrior is always displayed as one
+     complete word on every screen size, orientation, and browser.
+  ────────────────────────────────────────────────────────────── */
+  .logo-wordmark,
+  .logo-wordmark * {
+    white-space: nowrap !important;
+    word-break: keep-all !important;
+    overflow-wrap: normal !important;
+    word-wrap: normal !important;
+  }
+  /* Prevent SVG text from ever being hidden via overflow on small screens */
+  .logo-wordmark svg {
+    overflow: visible !important;
+    min-width: 0;
+    display: block;
+    width: 100%;
+    height: auto;
+  }
+</style>
+</head>
+<body>
+<div id="root"></div>
+
+<script type="text/babel" data-presets="react">
+const { useState, useEffect, useRef, useCallback } = React;
+const { motion, AnimatePresence, useScroll, useTransform } = window.Motion || window.framerMotion;
+
+/* ============================================================
+   MOLECULAR BACKGROUND CANVAS
+   ============================================================ */
+function MolecularCanvas({ id = "mol-canvas", opacity = 0.07, color = "rgba(110,168,255,1)", fixed = false }) {
+  const canvasRef = useRef(null);
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    const ctx = canvas.getContext("2d");
+    let raf;
+
+    function resize() {
+      canvas.width = canvas.offsetWidth;
+      canvas.height = canvas.offsetHeight;
+    }
+    resize();
+    window.addEventListener("resize", resize);
+
+    const W = () => canvas.width;
+    const H = () => canvas.height;
+
+    // Chemical / molecular formulas drifting across the background
+    const FORMULAS = [
+      "C\u2086H\u2081\u2082O\u2086", "H\u2082O", "NaCl", "CO\u2082", "C\u2082H\u2085OH",
+      "NH\u2083", "CH\u2084", "C\u2086H\u2086", "H\u2082SO\u2084", "C\u2089H\u2088O\u2084",
+      "Fe\u2082O\u2083", "C\u2081\u2082H\u2082\u2082O\u2081\u2081", "KMnO\u2084", "CaCO\u2083", "C\u2087H\u2085NO\u2082",
+    ];
+
+    const items = [];
+    function createItem(x, y, size) {
+      return {
+        x, y, size,
+        text: FORMULAS[Math.floor(Math.random() * FORMULAS.length)],
+        vx: (Math.random() - 0.5) * 0.06,
+        vy: (Math.random() - 0.5) * 0.04,
+        phase: Math.random() * Math.PI * 2,
+      };
+    }
+
+    function initItems() {
+      items.length = 0;
+      const count = Math.max(6, Math.floor(W() * H() / 70000));
+      for (let i = 0; i < count; i++) {
+        items.push(createItem(
+          Math.random() * W(),
+          Math.random() * H(),
+          13 + Math.random() * 9
+        ));
+      }
+    }
+    initItems();
+    window.addEventListener("resize", initItems);
+
+    let t = 0;
+    function draw() {
+      ctx.clearRect(0, 0, W(), H());
+      t += 0.01;
+
+      items.forEach(it => {
+        // Drift
+        it.x += it.vx;
+        it.y += it.vy;
+        if (it.x < -80) it.x = W() + 80;
+        if (it.x > W() + 80) it.x = -80;
+        if (it.y < -30) it.y = H() + 30;
+        if (it.y > H() + 30) it.y = -30;
+
+        // Gentle pulsing opacity
+        const pulse = 0.55 + Math.sin(t + it.phase) * 0.45;
+
+        ctx.font = `${it.size}px 'Inter', monospace`;
+        ctx.fillStyle = color;
+        ctx.globalAlpha = Math.max(0.05, pulse);
+        ctx.textBaseline = "middle";
+        ctx.fillText(it.text, it.x, it.y);
+        ctx.globalAlpha = 1;
+      });
+
+      raf = requestAnimationFrame(draw);
+    }
+    draw();
+    return () => {
+      cancelAnimationFrame(raf);
+      window.removeEventListener("resize", resize);
+      window.removeEventListener("resize", initItems);
+    };
+  }, []);
+
+  return <canvas ref={canvasRef} id={id} style={{
+    position: fixed ? "fixed" : "absolute",
+    inset: 0,
+    width: "100%",
+    height: "100%",
+    pointerEvents: "none",
+    opacity,
+    zIndex: fixed ? 0 : undefined,
+  }} />;
+}
+
+/* ============================================================
+   INTRO ANIMATION — CLEAN PROFESSIONAL REVEAL
+   ─────────────────────────────────────────────────────────
+   Stage 0 → dark void
+   Stage 1 → molecular grid + ambient glow fade in
+   Stage 2 → logo fades/glows into view
+   Stage 3 → hold, shine sweep plays
+   Stage 4 → everything fades out
+   ============================================================ */
+function IntroAnimation({ onDone }) {
+  const [phase, setPhase]     = useState(0);
+  const [fadeOut, setFadeOut] = useState(false);
+
+  /* Master timeline */
+  useEffect(() => {
+    const T = [
+      setTimeout(() => setPhase(1), 300),   // ambient glow builds
+      setTimeout(() => setPhase(2), 1100),  // logo reveals
+      setTimeout(() => setFadeOut(true), 3600),
+      setTimeout(() => onDone(), 4500),
+    ];
+    return () => T.forEach(clearTimeout);
+  }, []);
+
+  return (
+    <motion.div
+      key="intro-root"
+      className="fixed inset-0 z-[100] flex items-center justify-center overflow-hidden"
+      style={{ background: "#02040C" }}
+      animate={{ opacity: fadeOut ? 0 : 1 }}
+      transition={{ duration: 0.95, ease: "easeInOut" }}
+    >
+      {/* Molecular background */}
+      <MolecularCanvas id="intro-mol" opacity={0.055} color="rgba(80,130,255,1)" />
+
+      {/* Deep blue radial ambient — fades in with stage 1 */}
+      <motion.div className="absolute inset-0 pointer-events-none"
+        initial={{ opacity: 0 }}
+        animate={{ opacity: phase >= 1 ? 1 : 0 }}
+        transition={{ duration: 1.8 }}
+        style={{ background: "radial-gradient(ellipse 70% 55% at 50% 50%, rgba(12,26,72,0.55), transparent)" }}
+      />
+
+      {/* Edge vignette */}
+      <div className="absolute inset-0 pointer-events-none" style={{
+        background: "radial-gradient(ellipse 88% 82% at 50% 50%, transparent 52%, rgba(2,4,12,0.9) 100%)"
+      }} />
+
+      {/* ── MAIN STAGE — centred logo reveal ── */}
+      <div style={{
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        width: "min(720px, 98vw)",
+      }}>
+        <AnimatePresence>
+          {phase >= 2 && (
+            <motion.div
+              style={{
+                width: "100%",
+                display: "flex",
+                justifyContent: "center",
+                whiteSpace: "nowrap",
+                wordBreak: "keep-all",
+              }}
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ duration: 1.2, ease: "easeOut" }}
+            >
+              <LogoMetallic />
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </div>
+    </motion.div>
+  );
+}
+
+/* ── UNIFIED SINGLE-WORD LOGO: VersWARrior ──────────────────
+   One SVG text element, one line, never broken.
+   Uses viewBox + preserveAspectRatio so it scales fluid on all
+   screen sizes without ever wrapping or splitting.
+   ─────────────────────────────────────────────────────────── */
+function LogoMetallic() {
+  /* ── SINGLE-WORD GUARANTEE ──────────────────────────────────
+     The entire brand name "VersWARrior" lives in ONE SVG text
+     node.  The SVG uses preserveAspectRatio="xMidYMid meet" so
+     it always scales proportionally, and the container is capped
+     at 96vw so it never overflows on any screen. white-space
+     and word-break guards are applied at every wrapper level to
+     make wrapping physically impossible.
+  ────────────────────────────────────────────────────────────── */
+  const VW = 680, VH = 116;  // viewBox (unitless) — ample room, extra height for accent text
+  const CX = VW / 2;
+  const CY = 74;             // text baseline
+
+  const [shimmer, setShimmer] = useState(false);
+  useEffect(() => {
+    const t = setTimeout(() => setShimmer(true), 500);
+    return () => clearTimeout(t);
+  }, []);
+
+  return (
+    <div className="logo-wordmark" style={{
+      position: "relative",
+      /* never wider than viewport, never wraps */
+      width: "min(680px, 96vw)",
+      maxWidth: "96vw",
+      margin: "0 auto",
+      whiteSpace: "nowrap",
+      wordBreak: "keep-all",
+      overflowWrap: "normal",
+    }}>
+      {/* Ambient bloom behind the word */}
+      <div style={{
+        position: "absolute",
+        inset: "-24px -30px",
+        background: "radial-gradient(ellipse 70% 60% at 50% 55%, rgba(46,107,255,0.28), rgba(20,60,160,0.12) 55%, transparent 75%)",
+        filter: "blur(28px)",
+        pointerEvents: "none",
+      }} />
+
+      {/* ── SVG wordmark ── */}
+      <svg
+        viewBox={`0 0 ${VW} ${VH}`}
+        preserveAspectRatio="xMidYMid meet"
+        xmlns="http://www.w3.org/2000/svg"
+        style={{
+          display: "block",
+          width: "100%",
+          height: "auto",
+          overflow: "visible",
+        }}
+      >
+        <defs>
+          {/* Vertical metallic blue gradient — top highlight → deep navy */}
+          <linearGradient id="lg-main" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%"   stopColor="#E4F0FF" />
+            <stop offset="15%"  stopColor="#B8D4FF" />
+            <stop offset="38%"  stopColor="#FFFFFF" stopOpacity="0.97" />
+            <stop offset="55%"  stopColor="#7AB8FF" />
+            <stop offset="75%"  stopColor="#3B72E0" />
+            <stop offset="100%" stopColor="#102060" />
+          </linearGradient>
+
+          {/* Horizontal glass shine sweep */}
+          <linearGradient id="lg-sweep" x1="0" y1="0" x2="1" y2="0">
+            <stop offset="0%"   stopColor="rgba(255,255,255,0)" />
+            <stop offset="40%"  stopColor="rgba(255,255,255,0.62)" />
+            <stop offset="60%"  stopColor="rgba(255,255,255,0.62)" />
+            <stop offset="100%" stopColor="rgba(255,255,255,0)" />
+          </linearGradient>
+
+          {/* Clip so shine never bleeds outside viewBox */}
+          <clipPath id="lg-clip">
+            <rect x="0" y="0" width={VW} height={VH} />
+          </clipPath>
+        </defs>
+
+        {/* ── Main wordmark — one unified text node, ONE word ── */}
+        <text
+          x={CX} y={CY}
+          textAnchor="middle"
+          dominantBaseline="auto"
+          fontFamily="'Cinzel', serif"
+          fontWeight="900"
+          fontSize="72"
+          letterSpacing="3"
+          fill="url(#lg-main)"
+          style={{ filter: "drop-shadow(0 0 18px rgba(46,107,255,0.45)) drop-shadow(0 0 40px rgba(80,140,255,0.22))" }}
+        >VersWARrior</text>
+
+        {/* ── DSDJ accent — white, positioned below the "A", subtle pulse ── */}
+        <motion.text
+          x="366" y="98"
+          textAnchor="middle"
+          fontFamily="'Cinzel', serif"
+          fontWeight="700"
+          fontSize="15"
+          letterSpacing="3"
+          fill="#FFFFFF"
+          style={{ filter: "drop-shadow(0 0 6px rgba(255,255,255,0.55))" }}
+          animate={{ opacity: [1, 0.35, 1] }}
+          transition={{ duration: 2.6, repeat: Infinity, ease: "easeInOut" }}
+        >DSDJ</motion.text>
+
+        {/* ── Premium shine sweep — one pass every ~6 s ── */}
+        {shimmer && (
+          <motion.rect
+            x="-140" y="0"
+            width="130" height={VH}
+            fill="url(#lg-sweep)"
+            style={{ mixBlendMode: "overlay" }}
+            clipPath="url(#lg-clip)"
+            initial={{ x: -140 }}
+            animate={{ x: VW + 140 }}
+            transition={{
+              duration: 1.35,
+              ease: [0.4, 0, 0.2, 1],
+              repeat: Infinity,
+              repeatDelay: 5.5,
+            }}
+          />
+        )}
+      </svg>
+
+      {/* Precision rule beneath wordmark */}
+      <motion.div
+        style={{
+          height: 1,
+          marginTop: 8,
+          background: "linear-gradient(90deg, transparent, rgba(110,168,255,0.5) 20%, rgba(210,230,255,0.45) 50%, rgba(110,168,255,0.5) 80%, transparent)",
+        }}
+        initial={{ scaleX: 0, opacity: 0 }}
+        animate={{ scaleX: 1, opacity: 1 }}
+        transition={{ duration: 0.9, delay: 0.5, ease: [0.22, 1, 0.36, 1] }}
+      />
+    </div>
+  );
+}
+
+/* ============================================================
+   SHARED COMPONENTS
+   ============================================================ */
+function SwordSilhouette({ className = "" }) {
+  return (
+    <svg className={className} width="600" height="120" viewBox="0 0 600 60" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <polygon points="0,30 470,24 570,30 470,36" fill="currentColor" />
+      <rect x="458" y="14" width="6" height="32" fill="currentColor" />
+      <rect x="464" y="26" width="86" height="8" fill="currentColor" />
+      <ellipse cx="578" cy="30" rx="11" ry="10" fill="currentColor" />
+    </svg>
+  );
+}
+
+function FloatingParticles({ count = 14 }) {
+  const particles = Array.from({ length: count });
+  return (
+    <div className="absolute inset-0 overflow-hidden pointer-events-none">
+      {particles.map((_, i) => (
+        <motion.div key={i} className="absolute rounded-full"
+          style={{
+            width: 2 + (i % 3), height: 2 + (i % 3),
+            background: i % 3 === 0 ? "#C7CDD9" : "#6FA8FF",
+            left: `${(i * 41) % 100}%`, top: `${(i * 67) % 100}%`,
+          }}
+          animate={{ opacity: [0, 0.7, 0], y: [-10, -50] }}
+          transition={{ duration: 4 + (i % 4), repeat: Infinity, delay: i * 0.25 }}
+        />
+      ))}
+    </div>
+  );
+}
+
+/* ============================================================
+   NAVBAR
+   ============================================================ */
+function Navbar({ route, onNavigate }) {
+  const [scrolled, setScrolled] = useState(false);
+  const [open, setOpen] = useState(false);
+  useEffect(() => {
+    const f = () => setScrolled(window.scrollY > 30);
+    window.addEventListener("scroll", f);
+    return () => window.removeEventListener("scroll", f);
+  }, []);
+
+  const links = [
+    { label: "Castle", id: "castle" },
+    { label: "Your Order", id: "your-order" },
+    { label: "Founder", id: "founder" },
+    { label: "About Us", id: "about-us" },
+  ];
+
+  return (
+    <motion.nav
+      initial={{ y: -80, opacity: 0 }}
+      animate={{ y: 0, opacity: 1 }}
+      transition={{ duration: 0.7 }}
+      className={`fixed top-0 left-0 right-0 z-50 transition-all duration-500 ${scrolled ? "glass shadow-[0_8px_32px_-12px_rgba(0,0,0,0.6)]" : "bg-transparent"}`}
+    >
+      <div className="max-w-7xl mx-auto px-5 sm:px-8 h-16 sm:h-20 flex items-center justify-between">
+        <button onClick={() => onNavigate("castle")} className="flex items-center gap-2 group">
+          <img src="logo.png" alt="VERSWARRIOR" className="h-8 sm:h-10 w-auto object-contain opacity-95 group-hover:opacity-100 transition rounded" />
+        </button>
+        <div className="hidden md:flex items-center gap-8">
+          {links.map(l => (
+            <button key={l.id} onClick={() => onNavigate(l.id)}
+              className={`text-sm font-medium tracking-wide transition-colors relative group ${route === l.id ? "text-[#6FA8FF]" : "text-slate-300 hover:text-[#6FA8FF]"}`}>
+              {l.label}
+              <span className={`absolute -bottom-1 left-0 h-[1px] bg-[#6FA8FF] transition-all duration-300 ${route === l.id ? "w-full" : "w-0 group-hover:w-full"}`} />
+            </button>
+          ))}
+        </div>
+        <button className="hidden md:inline-flex items-center px-5 py-2 rounded-full text-sm font-semibold text-[#070B17] grad-blue-silver hover:opacity-90 transition shadow-[0_0_20px_rgba(46,107,255,0.35)]"
+          onClick={() => onNavigate("your-order")}>
+          Place Your Order
+        </button>
+        <button className="md:hidden text-slate-200" onClick={() => setOpen(!open)}>
+          <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+            {open ? <path d="M6 6l12 12M18 6L6 18" /> : <path d="M3 6h18M3 12h18M3 18h18" />}
+          </svg>
+        </button>
+      </div>
+      <AnimatePresence>
+        {open && (
+          <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: "auto", opacity: 1 }} exit={{ height: 0, opacity: 0 }}
+            className="md:hidden glass overflow-hidden">
+            <div className="flex flex-col px-6 py-4 gap-4">
+              {links.map(l => (
+                <button key={l.id} onClick={() => { onNavigate(l.id); setOpen(false); }}
+                  className={`text-left text-sm font-medium ${route === l.id ? "text-[#6FA8FF]" : "text-slate-300 hover:text-[#6FA8FF]"}`}>
+                  {l.label}
+                </button>
+              ))}
+              <button onClick={() => { onNavigate("your-order"); setOpen(false); }}
+                className="mt-2 px-5 py-2 rounded-full text-sm font-semibold text-[#070B17] grad-blue-silver text-center">
+                Place Your Order
+              </button>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </motion.nav>
+  );
+}
+
+/* ============================================================
+   HERO
+   ============================================================ */
+function Hero({ onNavigate }) {
+  return (
+    <section id="hero" className="relative min-h-screen flex flex-col items-center justify-center px-6 pt-28 pb-20 overflow-hidden noise">
+      {/* Molecular background */}
+      <MolecularCanvas id="hero-mol" opacity={0.055} color="rgba(110,168,255,1)" />
+
+      <div className="absolute top-1/4 left-1/2 -translate-x-1/2 w-[700px] h-[700px] rounded-full bg-[#1E40AF]/25 blur-[140px] pointer-events-none" />
+      <div className="absolute bottom-0 right-0 w-[400px] h-[400px] rounded-full bg-[#C7CDD9]/10 blur-[120px] pointer-events-none" />
+
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.8 }}
+        className="text-center max-w-4xl relative z-10"
+      >
+        <p className="section-eyebrow mb-5">WELCOME TO THE CASTLE</p>
+        <h1 className="font-display font-black text-4xl sm:text-6xl md:text-7xl leading-[1.05] tracking-tight">
+          <span className="text-grad">WHAT WARRIORS</span><br />
+          <span className="text-white">DO</span>
+        </h1>
+        <p className="mt-6 text-slate-400 text-base sm:text-lg max-w-2xl mx-auto leading-relaxed">
+          Choose Your Warrior Ecosystem — premium, specialized solutions built for the modern battlefield of business.
+        </p>
+        <div className="mt-10 flex flex-col sm:flex-row items-center justify-center gap-4">
+          <a href="#warriors" className="px-8 py-3 rounded-full grad-blue-silver text-[#070B17] font-semibold text-sm shadow-[0_0_30px_rgba(46,107,255,0.4)] hover:scale-105 transition-transform">
+            Choose Your Warrior
+          </a>
+          <button onClick={() => onNavigate("founder")} className="px-8 py-3 rounded-full glass text-slate-200 font-semibold text-sm hover:border-[#6FA8FF]/50 transition">
+            Meet the Founder
+          </button>
+        </div>
+      </motion.div>
+
+      <motion.div
+        initial={{ opacity: 0, scaleX: 0 }}
+        whileInView={{ opacity: 1, scaleX: 1 }}
+        transition={{ duration: 1 }}
+        viewport={{ once: true }}
+        className="blade-divider w-full max-w-2xl mt-20"
+      />
+    </section>
+  );
+}
+
+/* ============================================================
+   WARRIORS SECTION  —  Premium 2 × 2 Enterprise Grid
+   ============================================================ */
+
+/* ── Icons: clean SVG line art, no fill, 28 × 28 ── */
+const IconAI = () => (
+  <svg width="28" height="28" viewBox="0 0 28 28" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+    {/* Central processor node */}
+    <rect x="9" y="9" width="10" height="10" rx="2" />
+    {/* Node connectors — left */}
+    <line x1="4" y1="11" x2="9" y2="11" /><circle cx="3" cy="11" r="1.2" fill="currentColor" stroke="none" />
+    <line x1="4" y1="17" x2="9" y2="17" /><circle cx="3" cy="17" r="1.2" fill="currentColor" stroke="none" />
+    {/* Node connectors — right */}
+    <line x1="19" y1="11" x2="24" y2="11" /><circle cx="25" cy="11" r="1.2" fill="currentColor" stroke="none" />
+    <line x1="19" y1="17" x2="24" y2="17" /><circle cx="25" cy="17" r="1.2" fill="currentColor" stroke="none" />
+    {/* Node connectors — top */}
+    <line x1="12" y1="4" x2="12" y2="9" /><circle cx="12" cy="3" r="1.2" fill="currentColor" stroke="none" />
+    <line x1="16" y1="4" x2="16" y2="9" /><circle cx="16" cy="3" r="1.2" fill="currentColor" stroke="none" />
+    {/* Node connectors — bottom */}
+    <line x1="12" y1="19" x2="12" y2="24" /><circle cx="12" cy="25" r="1.2" fill="currentColor" stroke="none" />
+    <line x1="16" y1="19" x2="16" y2="24" /><circle cx="16" cy="25" r="1.2" fill="currentColor" stroke="none" />
+    {/* Inner dot */}
+    <circle cx="14" cy="14" r="2" fill="currentColor" stroke="none" opacity="0.7" />
+  </svg>
+);
+
+const IconBanking = () => (
+  <svg width="28" height="28" viewBox="0 0 28 28" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+    {/* Pediment */}
+    <polyline points="3,11 14,4 25,11" />
+    <line x1="2" y1="11" x2="26" y2="11" />
+    {/* Columns */}
+    <line x1="7"  y1="12.5" x2="7"  y2="21" />
+    <line x1="11" y1="12.5" x2="11" y2="21" />
+    <line x1="17" y1="12.5" x2="17" y2="21" />
+    <line x1="21" y1="12.5" x2="21" y2="21" />
+    {/* Base */}
+    <line x1="3"  y1="21" x2="25" y2="21" />
+    <line x1="2"  y1="23" x2="26" y2="23" />
+  </svg>
+);
+
+const IconClinical = () => (
+  <svg width="28" height="28" viewBox="0 0 28 28" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+    {/* Heart outline */}
+    <path d="M14 23 C14 23 4 16.5 4 10.5 A5 5 0 0 1 14 8.5 A5 5 0 0 1 24 10.5 C24 16.5 14 23 14 23Z" />
+    {/* Pulse / EKG line through centre */}
+    <polyline points="7,14 10,14 11.5,10.5 13.5,17.5 15.5,12 17,14 21,14" strokeWidth="1.3" />
+  </svg>
+);
+
+const IconDigital = () => (
+  <svg width="28" height="28" viewBox="0 0 28 28" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+    {/* Globe */}
+    <circle cx="14" cy="14" r="10" />
+    {/* Latitude lines */}
+    <path d="M4 14 Q14 9 24 14" /><path d="M4 14 Q14 19 24 14" />
+    {/* Longitude */}
+    <line x1="14" y1="4" x2="14" y2="24" />
+    {/* Signal arc */}
+    <path d="M19 7.5 A8 8 0 0 1 19 20.5" strokeWidth="1.2" opacity="0.55" />
+    <path d="M22 5 A12 12 0 0 1 22 23" strokeWidth="1" opacity="0.3" />
+  </svg>
+);
+
+/* ── Warrior data: ordered for 2×2 grid (row-first) ── */
+const WARRIORS = [
+  {
+    id: "ai-ml-warrior",
+    line1: "AI ML",
+    line2: "Warrior",
+    cta: "Enter & Explore",
+    accent: "#4A8BFF",
+    accentDim: "rgba(46,107,255,0.10)",
+    accentBorder: "rgba(74,139,255,0.22)",
+    accentGlow: "rgba(46,107,255,0.18)",
+    Icon: IconAI,
+  },
+  {
+    id: "banking-warrior",
+    line1: "Banking",
+    line2: "Warrior",
+    cta: "Enter & Explore",
+    accent: "#50D4A8",
+    accentDim: "rgba(80,212,168,0.09)",
+    accentBorder: "rgba(80,212,168,0.20)",
+    accentGlow: "rgba(80,212,168,0.15)",
+    Icon: IconBanking,
+  },
+  {
+    id: "clinical-warrior",
+    line1: "Clinical",
+    line2: "Warrior",
+    cta: "Enter & Explore",
+    accent: "#E06090",
+    accentDim: "rgba(224,96,144,0.09)",
+    accentBorder: "rgba(224,96,144,0.20)",
+    accentGlow: "rgba(224,96,144,0.15)",
+    Icon: IconClinical,
+  },
+  {
+    id: "digital-warrior",
+    line1: "Digital",
+    line2: "Warrior",
+    cta: "Enter & Explore",
+    accent: "#A78BFA",
+    accentDim: "rgba(167,139,250,0.09)",
+    accentBorder: "rgba(167,139,250,0.20)",
+    accentGlow: "rgba(167,139,250,0.15)",
+    Icon: IconDigital,
+  },
+];
+
+/* ── Card number badges ── */
+const CARD_NUMS = ["01", "02", "03", "04"];
+
+function WarriorCard({ w, i, onNavigate }) {
+  const [hovered, setHovered] = useState(false);
+  const { Icon } = w;
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 36 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      viewport={{ once: true, margin: "-40px" }}
+      transition={{ duration: 0.65, delay: i * 0.1, ease: [0.16, 1, 0.3, 1] }}
+      onHoverStart={() => setHovered(true)}
+      onHoverEnd={() => setHovered(false)}
+      animate={hovered
+        ? { y: -10, scale: 1.015 }
+        : { y: 0,   scale: 1 }
+      }
+      style={{
+        position: "relative",
+        borderRadius: 20,
+        padding: "32px 30px 28px",
+        display: "flex",
+        flexDirection: "column",
+        gap: 0,
+        cursor: "pointer",
+        /* Layered background: deep navy + faint accent tint */
+        background: hovered
+          ? `linear-gradient(145deg, rgba(14,24,48,0.92) 0%, ${w.accentDim} 100%)`
+          : "linear-gradient(145deg, rgba(10,18,40,0.85) 0%, rgba(14,24,52,0.75) 100%)",
+        /* Glassmorphism backdrop */
+        backdropFilter: "blur(20px) saturate(160%)",
+        WebkitBackdropFilter: "blur(20px) saturate(160%)",
+        border: `1px solid ${hovered ? w.accentBorder : "rgba(255,255,255,0.07)"}`,
+        boxShadow: hovered
+          ? `0 24px 64px -16px ${w.accentGlow}, 0 0 0 1px ${w.accentBorder}, inset 0 1px 0 rgba(255,255,255,0.06)`
+          : "0 8px 32px -8px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.04)",
+        transition: "background 0.35s ease, border-color 0.35s ease, box-shadow 0.35s ease",
+        overflow: "hidden",
+        minHeight: 300,
+      }}
+    >
+      {/* ── Top stripe accent line ── */}
+      <div style={{
+        position: "absolute", top: 0, left: 0, right: 0,
+        height: 2,
+        background: `linear-gradient(90deg, transparent 0%, ${w.accent} 40%, ${w.accent} 60%, transparent 100%)`,
+        opacity: hovered ? 0.9 : 0.35,
+        transition: "opacity 0.35s ease",
+        borderRadius: "20px 20px 0 0",
+      }} />
+
+      {/* ── Card number (top-right) ── */}
+      <div style={{
+        position: "absolute", top: 20, right: 22,
+        fontFamily: "'JetBrains Mono', monospace",
+        fontSize: "0.65rem",
+        letterSpacing: "0.12em",
+        color: `${w.accent}`,
+        opacity: hovered ? 0.7 : 0.3,
+        transition: "opacity 0.35s ease",
+        fontWeight: 500,
+      }}>{CARD_NUMS[i]}</div>
+
+      {/* ── Icon container ── */}
+      <div style={{
+        width: 52, height: 52,
+        borderRadius: 14,
+        display: "flex", alignItems: "center", justifyContent: "center",
+        background: hovered ? w.accentDim : "rgba(255,255,255,0.04)",
+        border: `1px solid ${hovered ? w.accentBorder : "rgba(255,255,255,0.07)"}`,
+        color: hovered ? w.accent : "rgba(200,215,240,0.65)",
+        marginBottom: 28,
+        transition: "all 0.35s ease",
+        flexShrink: 0,
+      }}>
+        <Icon />
+      </div>
+
+      {/* ── Card title — two lines, bold premium ── */}
+      <h3 style={{
+        fontFamily: "'Inter', sans-serif",
+        fontSize: "clamp(1.6rem, 3vw, 2.1rem)",
+        fontWeight: 800,
+        color: "#EEF2FA",
+        lineHeight: 1.18,
+        letterSpacing: "-0.01em",
+        flex: 1,
+        marginBottom: 28,
+      }}>
+        <span style={{ display: "block" }}>{w.line1}</span>
+        <span style={{ display: "block", color: hovered ? w.accent : "#EEF2FA", transition: "color 0.35s ease" }}>{w.line2}</span>
+      </h3>
+
+      {/* ── CTA button ── */}
+      <button
+        onClick={() => onNavigate(w.id)}
+        style={{
+          width: "100%",
+          padding: "11px 20px",
+          borderRadius: 10,
+          fontSize: "0.78rem",
+          fontWeight: 600,
+          fontFamily: "'Inter', sans-serif",
+          letterSpacing: "0.06em",
+          border: `1px solid ${hovered ? w.accent : "rgba(255,255,255,0.10)"}`,
+          color: hovered ? w.accent : "rgba(200,215,240,0.65)",
+          background: hovered ? w.accentDim : "rgba(255,255,255,0.025)",
+          cursor: "pointer",
+          transition: "all 0.28s ease",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          gap: 8,
+        }}
+      >
+        <span>{w.cta}</span>
+        {/* Chevron arrow */}
+        <svg width="13" height="13" viewBox="0 0 13 13" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round">
+          <path d="M2 6.5h9M7.5 3l3.5 3.5L7.5 10" />
+        </svg>
+      </button>
+    </motion.div>
+  );
+}
+
+function WarriorsSection({ onNavigate }) {
+  return (
+    <section id="warriors" className="relative py-24 sm:py-32 overflow-hidden">
+      {/* Molecular canvas in background */}
+      <MolecularCanvas id="warriors-mol" opacity={0.045} color="rgba(100,160,255,1)" />
+
+      {/* Soft centred bloom */}
+      <div className="absolute inset-0 pointer-events-none" style={{
+        background: "radial-gradient(ellipse 70% 55% at 50% 50%, rgba(14,32,88,0.28), transparent 70%)",
+      }} />
+
+      <div className="relative z-10 max-w-5xl mx-auto px-6 sm:px-10">
+        {/* ── Section header ── */}
+        <div className="text-center mb-16">
+          <p className="section-eyebrow mb-4">FOUR PATHS, ONE ARMOR</p>
+          <h2 className="font-display text-3xl sm:text-5xl font-bold text-white mb-4"
+            style={{ letterSpacing: "-0.01em" }}>What Warriors Do</h2>
+          <p className="text-slate-400 max-w-lg mx-auto text-sm sm:text-base leading-relaxed">
+            Four independent premium modules — each a complete solution within the VersWARrior ecosystem.
+          </p>
+          {/* Decorative rule */}
+          <div className="mt-8 mx-auto" style={{
+            width: 48, height: 2,
+            background: "linear-gradient(90deg, transparent, rgba(110,168,255,0.6), transparent)",
+          }} />
+        </div>
+
+        {/* ── 2 × 2 Grid ── */}
+        <div style={{
+          display: "grid",
+          /* Always 2 columns on tablet+, 1 on mobile */
+          gridTemplateColumns: "repeat(2, 1fr)",
+          gap: "clamp(14px, 2.5vw, 28px)",
+        }}
+          /* Force single column below 560 px */
+          className="warriors-grid"
+        >
+          {WARRIORS.map((w, i) => (
+            <WarriorCard key={w.id} w={w} i={i} onNavigate={onNavigate} />
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+}
+
+/* ============================================================
+   CONTACT & FOOTER
+   ============================================================ */
+function ContactSection() {
+  return (
+    <section id="contact" className="relative px-6 py-20 max-w-4xl mx-auto text-center">
+      <p className="section-eyebrow mb-3">REACH THE CASTLE</p>
+      <h2 className="font-display text-2xl sm:text-3xl font-bold text-white mb-8">Contact</h2>
+      <div className="flex flex-col sm:flex-row items-center justify-center gap-6 sm:gap-12 text-slate-300 text-sm">
+        <div className="flex items-center gap-2"><span className="text-[#6FA8FF]">☎</span><span>+91 00000 00000</span></div>
+        <div className="flex items-center gap-2"><span className="text-[#6FA8FF]">@</span><span>instagram.com/verswarrior</span></div>
+        <div className="flex items-center gap-2"><span className="text-[#6FA8FF]">✉</span><span>contact@verswarrior.com</span></div>
+      </div>
+    </section>
+  );
+}
+
+function Footer() {
+  return (
+    <footer className="relative border-t border-white/5 px-6 py-8 mt-6">
+      <div className="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4">
+        <img src="logo.png" alt="VERSWARRIOR" className="h-9 w-auto object-contain rounded opacity-95" />
+        <p className="text-slate-500 text-xs">© {new Date().getFullYear()} VERSWARRIOR. All rights reserved.</p>
+      </div>
+    </footer>
+  );
+}
+
+function CastlePage({ onNavigate }) {
+  return (<><Hero onNavigate={onNavigate} /><WarriorsSection onNavigate={onNavigate} /><ContactSection /><Footer /></>);
+}
+
+/* ============================================================
+   COMING SOON
+   ============================================================ */
+const PAGE_TITLES = {
+  "your-order": "Your Order", "founder": "Founder", "about-us": "About Us",
+  "ai-ml-warrior": "AI / ML Warrior", "clinical-warrior": "Clinical Warrior",
+  "banking-warrior": "Banking Warrior", "digital-warrior": "Digital Warrior",
+};
+
+function ComingSoonPage({ route, onNavigate }) {
+  const title = PAGE_TITLES[route] || "Coming Soon";
+  return (
+    <section className="relative min-h-screen flex flex-col items-center justify-center px-6 pt-24 pb-20 overflow-hidden noise">
+      <MolecularCanvas id="cs-mol" opacity={0.05} color="rgba(110,168,255,1)" />
+      <div className="absolute top-1/3 left-1/2 -translate-x-1/2 w-[600px] h-[600px] rounded-full bg-[#1E40AF]/25 blur-[150px] pointer-events-none" />
+      <SwordSilhouette className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[120%] max-w-none text-[#6FA8FF]/[0.05] pointer-events-none" />
+      <FloatingParticles count={16} />
+      <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.8 }}
+        className="relative z-10 text-center">
+        <p className="section-eyebrow mb-4">{title.toUpperCase()}</p>
+        <motion.div className="mx-auto mb-8 w-20 h-20 rounded-2xl glass flex items-center justify-center"
+          animate={{ boxShadow: ["0 0 20px rgba(46,107,255,0.25)", "0 0 50px rgba(46,107,255,0.45)", "0 0 20px rgba(46,107,255,0.25)"] }}
+          transition={{ duration: 2.5, repeat: Infinity }}>
+          <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#6FA8FF" strokeWidth="1.4">
+            <path d="M14.5 2l-9 9-2 5 5-2 9-9-3-3z" /><path d="M16.5 6l2 2" /><path d="M5 17l-1.5 1.5" />
+          </svg>
+        </motion.div>
+        <motion.h1 className="font-display font-black text-4xl sm:text-6xl md:text-7xl glow-text"
+          animate={{ opacity: [0.85, 1, 0.85] }} transition={{ duration: 2.5, repeat: Infinity }}>
+          <span className="text-grad">COMING SOON</span>
+        </motion.h1>
+        <p className="mt-6 text-slate-400 text-base sm:text-lg max-w-md mx-auto leading-relaxed">
+          The {title} portal is being forged. Return soon to see what's been built.
+        </p>
+        <button onClick={() => onNavigate("castle")}
+          className="mt-10 px-8 py-3 rounded-full grad-blue-silver text-[#070B17] font-semibold text-sm shadow-[0_0_30px_rgba(46,107,255,0.35)] hover:scale-105 transition-transform">
+          Return to the Castle
+        </button>
+      </motion.div>
+      <motion.div initial={{ opacity: 0, scaleX: 0 }} animate={{ opacity: 1, scaleX: 1 }}
+        transition={{ duration: 1, delay: 0.4 }} className="blade-divider w-full max-w-md mt-16 relative z-10" />
+    </section>
+  );
+}
+
+/* ============================================================
+   SCROLL BLADE
+   ============================================================ */
+function ScrollBlade() {
+  const { scrollYProgress } = useScroll();
+  const width = useTransform(scrollYProgress, [0, 1], ["0%", "100%"]);
+  return (
+    <div className="fixed top-0 left-0 right-0 h-[3px] z-[60] bg-white/5">
+      <motion.div className="h-full grad-blue-silver" style={{ width }} />
+    </div>
+  );
+}
+
+/* ============================================================
+   APP / ROUTER
+   ============================================================ */
+function getRouteFromHash() {
+  return window.location.hash.replace("#", "") || "castle";
+}
+
+/* ============================================================
+   BACKGROUND MUSIC PLAYER
+   ─────────────────────────────────────────────────────────
+   Small fixed control, bottom-right. Browsers block autoplay
+   with sound, so playback starts on the user's first click.
+   Place an audio file named "music.mp3" next to index.html.
+   ============================================================ */
+function MusicPlayer() {
+  const audioRef = useRef(null);
+  const [playing, setPlaying] = useState(false);
+  const [muted, setMuted] = useState(false);
+
+  const toggle = () => {
+    const audio = audioRef.current;
+    if (!audio) return;
+    if (playing) {
+      audio.pause();
+      setPlaying(false);
+    } else {
+      audio.play().catch(() => {});
+      setPlaying(true);
+    }
+  };
+
+  const toggleMute = () => {
+    const audio = audioRef.current;
+    if (!audio) return;
+    audio.muted = !audio.muted;
+    setMuted(audio.muted);
+  };
+
+  return (
+    <>
+      <audio ref={audioRef} src="audio.mpeg" loop preload="none" />
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.8, delay: 0.6 }}
+        className="glass"
+        style={{
+          position: "fixed",
+          bottom: "20px",
+          right: "20px",
+          zIndex: 70,
+          display: "flex",
+          alignItems: "center",
+          gap: 10,
+          padding: "10px 14px",
+          borderRadius: 999,
+          backdropFilter: "blur(20px) saturate(160%)",
+          WebkitBackdropFilter: "blur(20px) saturate(160%)",
+          border: "1px solid rgba(255,255,255,0.08)",
+          boxShadow: "0 8px 28px -8px rgba(0,0,0,0.5)",
+        }}
+      >
+        {/* Play / Pause */}
+        <button
+          onClick={toggle}
+          aria-label={playing ? "Pause music" : "Play music"}
+          style={{
+            width: 34, height: 34,
+            borderRadius: "50%",
+            display: "flex", alignItems: "center", justifyContent: "center",
+            background: playing ? "rgba(46,107,255,0.18)" : "rgba(255,255,255,0.05)",
+            border: `1px solid ${playing ? "rgba(74,139,255,0.35)" : "rgba(255,255,255,0.10)"}`,
+            color: playing ? "#6FA8FF" : "rgba(200,215,240,0.75)",
+            cursor: "pointer",
+            transition: "all 0.25s ease",
+          }}
+        >
+          {playing ? (
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor"><rect x="5" y="4" width="5" height="16" rx="1.5"/><rect x="14" y="4" width="5" height="16" rx="1.5"/></svg>
+          ) : (
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor"><path d="M5 3.5v17l16-8.5z"/></svg>
+          )}
+        </button>
+
+        {/* Equalizer indicator */}
+        <div style={{ display: "flex", alignItems: "center", gap: 3, height: 16 }}>
+          {[0,1,2].map(i => (
+            <motion.span key={i}
+              style={{
+                width: 3,
+                borderRadius: 2,
+                background: playing ? "#6FA8FF" : "rgba(200,215,240,0.35)",
+              }}
+              animate={playing
+                ? { height: [4, 16, 6, 12, 4] }
+                : { height: 6 }
+              }
+              transition={playing
+                ? { duration: 0.9 + i * 0.15, repeat: Infinity, ease: "easeInOut" }
+                : { duration: 0.3 }
+              }
+            />
+          ))}
+        </div>
+
+        {/* Mute toggle */}
+        <button
+          onClick={toggleMute}
+          aria-label={muted ? "Unmute" : "Mute"}
+          style={{
+            width: 30, height: 30,
+            borderRadius: "50%",
+            display: "flex", alignItems: "center", justifyContent: "center",
+            background: "transparent",
+            border: "none",
+            color: "rgba(200,215,240,0.55)",
+            cursor: "pointer",
+          }}
+        >
+          {muted ? (
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M11 5L6 9H2v6h4l5 4V5z"/><line x1="23" y1="9" x2="17" y2="15"/><line x1="17" y1="9" x2="23" y2="15"/>
+            </svg>
+          ) : (
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M11 5L6 9H2v6h4l5 4V5z"/><path d="M15.5 8.5a5 5 0 010 7"/><path d="M18.5 5.5a9 9 0 010 13"/>
+            </svg>
+          )}
+        </button>
+      </motion.div>
+    </>
+  );
+}
+
+function App() {
+  const [introDone, setIntroDone] = useState(false);
+  const [route, setRoute] = useState(getRouteFromHash());
+
+  useEffect(() => {
+    const onHash = () => setRoute(getRouteFromHash());
+    window.addEventListener("hashchange", onHash);
+    return () => window.removeEventListener("hashchange", onHash);
+  }, []);
+
+  const navigate = (id) => {
+    window.location.hash = id;
+    setRoute(id);
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  };
+
+  return (
+    <>
+      <AnimatePresence>
+        {!introDone && <IntroAnimation key="intro" onDone={() => setIntroDone(true)} />}
+      </AnimatePresence>
+
+      {introDone && (
+        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.8 }}>
+          {/* Global molecular network background — covers every page */}
+          <MolecularCanvas id="global-mol" opacity={0.05} color="rgba(110,168,255,1)" fixed />
+          <ScrollBlade />
+          <Navbar route={route} onNavigate={navigate} />
+          <AnimatePresence mode="wait">
+            <motion.div key={route}
+              initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -16 }}
+              transition={{ duration: 0.45, ease: [0.16, 1, 0.3, 1] }}>
+              {route === "castle"
+                ? <CastlePage onNavigate={navigate} />
+                : <ComingSoonPage route={route} onNavigate={navigate} />}
+            </motion.div>
+          </AnimatePresence>
+        </motion.div>
+      )}
+      <MusicPlayer />
+    </>
+  );
+}
+
+ReactDOM.createRoot(document.getElementById("root")).render(<App />);
+</script>
+</body>
+</html>
