@@ -250,7 +250,7 @@ function MolecularCanvas({ id = "mol-canvas", opacity = 0.07, color = "rgba(110,
    Stage 4 → everything fades out
    ============================================================ */
 function IntroAnimation({ onDone }) {
-  const [phase, setPhase]     = useState(0);
+  const [phase, setPhase] = useState(0);
   const [fadeOut, setFadeOut] = useState(false);
 
   /* Master timeline */
@@ -414,7 +414,7 @@ function LogoMetallic() {
 
         {/* ── DSDJ accent — white, positioned below the "A", subtle pulse ── */}
         <motion.text
-          x="366" y="98"
+          x="370" y="100"
           textAnchor="middle"
           fontFamily="'Cinzel', serif"
           fontWeight="700"
@@ -508,6 +508,7 @@ function Navbar({ route, onNavigate }) {
 
   const links = [
     { label: "Castle", id: "castle" },
+    { label: "Warrior Ecosystem", id: "warrior-ecosystem" },
     { label: "Your Order", id: "your-order" },
     { label: "Founder", id: "founder" },
     { label: "About Us", id: "about-us" },
@@ -932,6 +933,243 @@ function CastlePage({ onNavigate }) {
 }
 
 /* ============================================================
+   WARRIOR ECOSYSTEM — dedicated page
+   Duplicates the WarriorsSection content from the homepage
+   onto its own route, with top padding for the fixed navbar.
+   ============================================================ */
+function WarriorEcosystemPage({ onNavigate }) {
+  return (
+    <div className="pt-24">
+      <WarriorsSection onNavigate={onNavigate} />
+      <Footer />
+    </div>
+  );
+}
+
+/* ============================================================
+   FOUNDER PAGE
+   ============================================================ */
+const FOUNDER_HIGHLIGHTS = [
+  { label: "B.Sc. Mathematics", Icon: IconAI },
+  { label: "MBA – Human Resource Management", Icon: IconBanking },
+  { label: "Diploma in Graphic & Web Designing", Icon: IconDigital },
+  { label: "AI & Machine Learning Enthusiast", Icon: IconAI },
+  { label: "Python Programmer", Icon: IconDigital },
+  { label: "Digital Marketing Learner", Icon: IconDigital },
+  { label: "Content Creator", Icon: IconDigital },
+  { label: "Banking Aspirant", Icon: IconBanking },
+  { label: "Leo Club Leader", Icon: IconClinical },
+];
+
+const FOUNDER_INTRO_PARAS = [
+  "Hi, I'm Deshiha J.",
+  "A versatile learner, innovator, creator, and lifelong student of knowledge.",
+  "My journey spans multiple disciplines including Mathematics, Human Resources, Artificial Intelligence, Programming, Digital Marketing, Content Creation, Leadership, and Technology.",
+  "I believe the future belongs to people who are capable of learning across domains, connecting ideas, and transforming knowledge into meaningful solutions.",
+  "VersWARrior was born from this belief.",
+  "It is not just a platform. It is a growing ecosystem designed to empower learners, creators, professionals, innovators, and future leaders.",
+  "My mission is to bridge education, technology, artificial intelligence, creativity, and human potential into a single ecosystem where growth never stops.",
+];
+
+function FounderHighlightCard({ item, i }) {
+  const [hovered, setHovered] = useState(false);
+  const { Icon, label } = item;
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 24 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      viewport={{ once: true, margin: "-40px" }}
+      transition={{ duration: 0.55, delay: (i % 5) * 0.06, ease: [0.16, 1, 0.3, 1] }}
+      onMouseEnter={() => setHovered(true)}
+      onMouseLeave={() => setHovered(false)}
+      animate={hovered ? { y: -6, scale: 1.015 } : { y: 0, scale: 1 }}
+      style={{
+        position: "relative",
+        borderRadius: 16,
+        padding: "22px 22px 20px",
+        display: "flex",
+        alignItems: "center",
+        gap: 16,
+        background: hovered
+          ? "linear-gradient(145deg, rgba(14,24,48,0.92) 0%, rgba(46,107,255,0.10) 100%)"
+          : "linear-gradient(145deg, rgba(10,18,40,0.85) 0%, rgba(14,24,52,0.75) 100%)",
+        backdropFilter: "blur(20px) saturate(160%)",
+        WebkitBackdropFilter: "blur(20px) saturate(160%)",
+        border: `1px solid ${hovered ? "rgba(74,139,255,0.25)" : "rgba(255,255,255,0.07)"}`,
+        boxShadow: hovered
+          ? "0 20px 50px -16px rgba(46,107,255,0.22), inset 0 1px 0 rgba(255,255,255,0.06)"
+          : "0 8px 32px -8px rgba(0,0,0,0.45), inset 0 1px 0 rgba(255,255,255,0.04)",
+        transition: "background 0.35s ease, border-color 0.35s ease, box-shadow 0.35s ease",
+      }}
+    >
+      <div style={{
+        width: 44, height: 44,
+        borderRadius: 12,
+        flexShrink: 0,
+        display: "flex", alignItems: "center", justifyContent: "center",
+        background: hovered ? "rgba(46,107,255,0.12)" : "rgba(255,255,255,0.04)",
+        border: `1px solid ${hovered ? "rgba(74,139,255,0.28)" : "rgba(255,255,255,0.07)"}`,
+        color: hovered ? "#6FA8FF" : "rgba(200,215,240,0.65)",
+        transition: "all 0.35s ease",
+      }}>
+        <Icon />
+      </div>
+      <p style={{
+        fontFamily: "'Inter', sans-serif",
+        fontSize: "0.92rem",
+        fontWeight: 600,
+        color: hovered ? "#EEF2FA" : "rgba(220,228,245,0.9)",
+        lineHeight: 1.35,
+        letterSpacing: "-0.005em",
+        transition: "color 0.35s ease",
+      }}>{label}</p>
+    </motion.div>
+  );
+}
+
+function FounderPage() {
+  return (
+    <div className="pt-24 relative overflow-hidden">
+      <MolecularCanvas id="founder-mol" opacity={0.05} color="rgba(110,168,255,1)" />
+      <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[700px] h-[700px] rounded-full bg-[#1E40AF]/20 blur-[160px] pointer-events-none" />
+
+      {/* ── Hero: circular photo + name/title ── */}
+      <section className="relative z-10 max-w-3xl mx-auto px-6 sm:px-10 text-center pt-10 pb-6">
+
+        {/* Circular professional photo with animated gradient ring */}
+        <motion.div
+          initial={{ opacity: 0, scale: 0.9 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ duration: 0.9, ease: [0.16, 1, 0.3, 1] }}
+          className="relative mx-auto mb-8"
+          style={{ width: "clamp(160px, 28vw, 200px)", height: "clamp(160px, 28vw, 200px)" }}
+        >
+          {/* Rotating gradient ring */}
+          <motion.div
+            className="absolute inset-0 rounded-full"
+            style={{
+              background: "conic-gradient(from 0deg, var(--blue), var(--ice), var(--silver), var(--blue))",
+              padding: 3,
+            }}
+            animate={{ rotate: 360 }}
+            transition={{ duration: 14, repeat: Infinity, ease: "linear" }}
+          >
+            <div className="w-full h-full rounded-full" style={{ background: "transparent" }} />
+          </motion.div>
+
+          {/* Soft pulsing glow behind ring */}
+          <motion.div
+            className="absolute inset-0 rounded-full pointer-events-none"
+            style={{ boxShadow: "0 0 50px rgba(46,107,255,0.35)" }}
+            animate={{ opacity: [0.5, 0.9, 0.5] }}
+            transition={{ duration: 3.2, repeat: Infinity, ease: "easeInOut" }}
+          />
+
+          {/* Photo */}
+          <div className="absolute inset-[5px] rounded-full overflow-hidden">
+            <img
+              src="FOUNDER PIC.png"
+              alt="Deshiha J — Founder, VersWARrior"
+              className="w-full h-full"
+              style={{ display: "block", objectFit: "cover", objectPosition: "50% -15%", transform: "scale(1.15)", transformOrigin: "center center" }}
+            />
+          </div>
+        </motion.div>
+
+        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.8, delay: 0.2 }}>
+          <p className="section-eyebrow mb-4">MEET THE FOUNDER</p>
+          <h1 className="font-display font-black text-4xl sm:text-6xl glow-text">
+            <span className="text-grad">DESHIHA J</span>
+          </h1>
+          <p className="mt-4 text-slate-300 text-base sm:text-lg font-medium tracking-wide">
+            Founder &amp; Versatile Innovator, VersWARrior
+          </p>
+          {/* Decorative rule */}
+          <div className="mt-8 mx-auto" style={{
+            width: 48, height: 2,
+            background: "linear-gradient(90deg, transparent, rgba(110,168,255,0.6), transparent)",
+          }} />
+        </motion.div>
+      </section>
+
+      {/* ── Introduction ── */}
+      <section className="relative z-10 max-w-2xl mx-auto px-6 sm:px-10 mb-20 mt-12">
+        <motion.div
+          initial={{ opacity: 0, y: 24 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true, margin: "-60px" }}
+          transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
+          className="glass rounded-[20px] px-6 sm:px-10 py-10"
+        >
+          {FOUNDER_INTRO_PARAS.map((p, i) => (
+            <p key={i} className={`text-slate-300 leading-relaxed ${i === 0 ? "text-lg sm:text-xl font-semibold text-white mb-4" : "text-sm sm:text-base mb-4 last:mb-0"}`}>
+              {i === 1
+                ? (<>A versatile learner, innovator, creator, and{" "}
+                    <span className="text-grad font-semibold">lifelong student of knowledge</span>.</>)
+                : p}
+            </p>
+          ))}
+        </motion.div>
+      </section>
+
+      {/* ── Highlight cards ── */}
+      <section className="relative z-10 max-w-5xl mx-auto px-6 sm:px-10 mb-20">
+        <div className="text-center mb-12">
+          <p className="section-eyebrow mb-4">THE JOURNEY SO FAR</p>
+          <h2 className="font- display text-2xl sm:text-4xl font-bold text-white" style={{ letterSpacing: "-0.01em" }}>
+            A Multidisciplinary Foundation
+          </h2>
+          <div className="mt-8 mx-auto" style={{
+            width: 48, height: 2,
+            background: "linear-gradient(90deg, transparent, rgba(110,168,255,0.6), transparent)",
+          }} />
+        </div>
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-5">
+          {FOUNDER_HIGHLIGHTS.map((item, i) => (
+            <FounderHighlightCard key={item.label} item={item} i={i} />
+          ))}
+        </div>
+      </section>
+
+      {/* ── Signature statement ── */}
+      <section className="relative z-10 max-w-3xl mx-auto px-6 sm:px-10 mb-24">
+        <motion.div
+          initial={{ opacity: 0, y: 24 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true, margin: "-60px" }}
+          transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
+          className="relative glass rounded-[24px] px-8 sm:px-14 py-12 text-center overflow-hidden"
+          style={{
+            boxShadow: "0 24px 64px -16px rgba(46,107,255,0.18), inset 0 1px 0 rgba(255,255,255,0.06)",
+          }}
+        >
+          <div className="absolute inset-0 pointer-events-none" style={{
+            background: "radial-gradient(ellipse 70% 60% at 50% 0%, rgba(46,107,255,0.12), transparent 70%)",
+          }} />
+          <svg className="mx-auto mb-6 relative z-10" width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="#6FA8FF" strokeWidth="1.4">
+            <path d="M7 7h4v6c0 2.5-1.5 4-4 4" /><path d="M15 7h4v6c0 2.5-1.5 4-4 4" />
+          </svg>
+          <p className="relative z-10 font-display text-lg sm:text-2xl leading-relaxed text-white mb-6" style={{ letterSpacing: "0.01em" }}>
+            "I don't believe in limiting myself to a single field.
+            I believe in continuous evolution, multidisciplinary learning, and building solutions that create real impact.
+            The goal is not just to use technology.
+            The goal is to create it."
+          </p>
+          <div className="mx-auto mb-4" style={{
+            width: 40, height: 2,
+            background: "linear-gradient(90deg, transparent, rgba(110,168,255,0.6), transparent)",
+          }} />
+          <p className="relative z-10 section-eyebrow">— DESHIHA J</p>
+        </motion.div>
+      </section>
+
+      <ContactSection />
+      <Footer />
+    </div>
+  );
+}
+
+/* ============================================================
    COMING SOON
    ============================================================ */
 const PAGE_TITLES = {
@@ -1029,7 +1267,7 @@ function MusicPlayer() {
 
   return (
     <>
-      <audio ref={audioRef} src="audio.mpeg" loop preload="none" />
+      <audio ref={audioRef} src="music.mp3" loop preload="none" />
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
@@ -1157,12 +1395,16 @@ function App() {
               transition={{ duration: 0.45, ease: [0.16, 1, 0.3, 1] }}>
               {route === "castle"
                 ? <CastlePage onNavigate={navigate} />
+                : route === "warrior-ecosystem"
+                ? <WarriorEcosystemPage onNavigate={navigate} />
+                : route === "founder"
+                ? <FounderPage onNavigate={navigate} />
                 : <ComingSoonPage route={route} onNavigate={navigate} />}
             </motion.div>
           </AnimatePresence>
+          <MusicPlayer />
         </motion.div>
       )}
-      <MusicPlayer />
     </>
   );
 }
