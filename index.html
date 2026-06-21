@@ -262,12 +262,18 @@ function IntroAnimation({ onDone }) {
       setTimeout(() => onDone(), 4500),
     ];
     return () => T.forEach(clearTimeout);
-  }, []);
+  }, [onDone]);
+
+  const handleSkip = () => {
+    setFadeOut(true);
+    setTimeout(() => onDone(), 500);
+  };
 
   return (
     <motion.div
       key="intro-root"
-      className="fixed inset-0 z-[100] flex items-center justify-center overflow-hidden"
+      onClick={handleSkip}
+      className="fixed inset-0 z-[100] flex items-center justify-center overflow-hidden cursor-pointer"
       style={{ background: "#02040C" }}
       animate={{ opacity: fadeOut ? 0 : 1 }}
       transition={{ duration: 0.95, ease: "easeInOut" }}
@@ -1362,8 +1368,9 @@ function MusicPlayer() {
 }
 
 function App() {
-  const [introDone, setIntroDone] = useState(false);
-  const [route, setRoute] = useState(getRouteFromHash());
+  const initialRoute = getRouteFromHash();
+  const [introDone, setIntroDone] = useState(initialRoute !== "castle");
+  const [route, setRoute] = useState(initialRoute);
 
   useEffect(() => {
     const onHash = () => setRoute(getRouteFromHash());
